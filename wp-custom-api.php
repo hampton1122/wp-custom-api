@@ -28,6 +28,9 @@ $key = get_site_option("CUSTOM_API_AUTH_KEY");
 $prefix = $wpdb->prefix;
 // END Global Settings
 
+// ajax
+add_action('wp_ajax_generate_key', 'generateKey');
+// end ajax
 
 // Admin Page
 //create admin page
@@ -48,9 +51,25 @@ function customapi_admin_page() {
 
     echo "<h2>Custom API Admin</h2>";
     ?>
+     <script>
+    jQuery(document).ready(function() {
+        jQuery(".generate").bind("click", function() {
+            jQuery.ajax({
+                type:'POST',
+                data:{action:'generate_key'},
+                dataType: 'text',
+                url: "/wp-admin/admin-ajax.php",
+                success: function(value) {
+                    console.log(value);
+                    jQuery('#authkey').val(value);
+                }
+            });
+        })
+    });
+    </script>
     <form method="post" action="<?php echo admin_url( 'admin.php?page=customapi-admin-page', 'https' );?>" name="settingsForm">
         <label>Auth Key:</label> <input type="text" id="authkey" name="authkey" value="<?php echo $authkey; ?>"  /><br />
-        <p style="font-size:10px;"><span class="fa fa-question-circle"></span> Enter auth key to use in your api calls.</p>
+        <p style="font-size:10px;"><i class="fa fa-refresh generate"></i> Click to generate key.</p>
         <input type="hidden" name="action" id="action" value="saveKey" />
         <?php submit_button( 'Save Key', 'primary', 'vda-save-settings' ); ?>
     </form>
@@ -138,4 +157,17 @@ function get_table_name($name) {
   global $wpdb;
 
   return $wpdb->prefix . $name;
+}
+
+function generateKey($l=32){
+    mt_srand((double)microtime()*10000);//optional for php 4.2.0 and up.
+    $charid = strtoupper(md5(uniqid(rand(), true)));
+    $hyphen = chr(45);// "-"
+    $uuid = substr($charid, 0, 8).$hyphen
+        .substr($charid, 8, 4).$hyphen
+        .substr($charid,12, 4).$hyphen
+        .substr($charid,16, 4).$hyphen
+        .substr($charid,20,12);
+        echo str_replace("-","",$uuid);
+        exit();
 }
