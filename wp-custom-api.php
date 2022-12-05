@@ -19,7 +19,7 @@
 // Global Settings
 global $wpdb;
 
-$headers = array_change_key_case(getallheaders(), CASE_UPPER); 
+$headers = array_change_key_case(get_http_request_headers(), CASE_UPPER); 
 if (isset($headers['WPAUTHX'])) {
   $token = $headers['WPAUTHX'];
 }
@@ -170,4 +170,20 @@ function generateKey($l=32){
         .substr($charid,20,12);
         echo str_replace("-","",$uuid);
         exit();
+}
+
+function get_http_request_headers() {
+    if ( ! function_exists( 'getallheaders' ) ) {
+        $headers = [];
+
+        foreach ( $_SERVER as $name => $value ) {
+            if ( 'HTTP_' === substr( $name, 0, 5 ) ) {
+                $headers[ str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $name, 5 ) ) ) ) ) ] = $value;
+            }
+        }
+
+        return $headers;
+    } else {
+        return getallheaders();
+    }
 }
